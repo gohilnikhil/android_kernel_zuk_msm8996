@@ -139,7 +139,11 @@ static void devfreq_update_boosts(struct boost_dev *b, unsigned long state)
 		df->max_boost = false;
 	} else {
 		df->min_freq = test_bit(INPUT_BOOST, &state) ?
+		#if CONFIG_BOOST_CONTROL
+			       min(cpubw_boost_freq, df->max_freq) :
+		#else
 			       min(b->boost_freq, df->max_freq) :
+		#endif
 			       df->profile->freq_table[0];
 		df->max_boost = test_bit(MAX_BOOST, &state);
 	}
