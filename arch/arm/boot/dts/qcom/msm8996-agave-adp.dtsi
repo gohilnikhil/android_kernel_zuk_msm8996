@@ -28,6 +28,11 @@
 	};
 };
 
+&msm_vidc {
+	disable-dcvs-enc;
+	disable-dcvs-dec;
+};
+
 &ufs_ice {
 	status = "ok";
 };
@@ -1461,6 +1466,14 @@
 	vdda33-supply = <&pm8994_l24>;
 	vdda18-supply = <&pm8994_l12>;
 	qcom,no-wakeup-src-in-hostmode;
+	dwc3@6a00000 {
+		usb-phy = <&qusb_phy0>, <&usb_nop_phy>;
+		maximum-speed = "high-speed";
+	};
+};
+
+&ssphy {
+	status = "disabled";
 };
 
 &blsp1_uart2 {
