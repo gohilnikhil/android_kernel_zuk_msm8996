@@ -309,11 +309,11 @@ config DEBUG_SECTION_MISMATCH
 	    the analysis would not catch the illegal reference.
 	    This option tells gcc to inline less (but it does result in
 	    a larger kernel).
-	  - Run the section mismatch analysis for each module/built-in.o file.
+	  - Run the section mismatch analysis for each module/built-in.a file.
 	    When we run the section mismatch analysis on vmlinux.o, we
 	    lose valueble information about where the mismatch was
 	    introduced.
-	    Running the analysis for each module/built-in.o file
+	    Running the analysis for each module/built-in.a file
 	    tells where the mismatch happens much closer to the
 	    source. The drawback is that the same mismatch is
 	    reported at least twice.
@@ -1253,7 +1253,7 @@ config HAVE_DEBUG_BUGVERBOSE
 config DEBUG_BUGVERBOSE
 	bool "Verbose BUG() reporting (adds 70K)" if DEBUG_KERNEL && EXPERT
 	depends on BUG && (GENERIC_BUG || HAVE_DEBUG_BUGVERBOSE)
-	default y
+	default n
 	help
 	  Say Y here to make BUG() panics output the file name and line number
 	  of the BUG call as well as the EIP and oops trace.  This aids

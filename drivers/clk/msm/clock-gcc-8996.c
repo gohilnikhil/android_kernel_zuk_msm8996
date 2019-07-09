@@ -42,7 +42,7 @@ static void __iomem *virt_dbgbase;
 #define gpll0_out_main_source_val 1
 #define gpll4_out_main_source_val 5
 
-#define FIXDIV(div) (div ? (2 * (div) - 1) : (0))
+#define FIXDIV(div) ((div != 0) ? (2 * (div) - 1) : (0))
 
 #define F(f, s, div, m, n) \
 	{ \
@@ -3085,7 +3085,6 @@ static struct branch_clk gcc_mss_q6_bimc_axi_clk = {
 	.base = &virt_base,
 	.c = {
 		.dbg_name = "gcc_mss_q6_bimc_axi_clk",
-		.always_on = true,
 		.ops = &clk_ops_branch,
 		CLK_INIT(gcc_mss_q6_bimc_axi_clk.c),
 	},

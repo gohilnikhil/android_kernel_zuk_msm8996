@@ -4031,25 +4031,31 @@ static int msm_routing_ext_ec_put(struct snd_kcontrol *kcontrol,
 	switch (msm_route_ext_ec_ref) {
 	case EXT_EC_REF_PRI_MI2S_TX:
 		ext_ec_ref_port_id = AFE_PORT_ID_PRIMARY_MI2S_TX;
+		msm_route_ext_ec_ref = 1;
 		break;
 	case EXT_EC_REF_SEC_MI2S_TX:
 		ext_ec_ref_port_id = AFE_PORT_ID_SECONDARY_MI2S_TX;
+		msm_route_ext_ec_ref = 2;
 		break;
 	case EXT_EC_REF_TERT_MI2S_TX:
 		ext_ec_ref_port_id = AFE_PORT_ID_TERTIARY_MI2S_TX;
+		msm_route_ext_ec_ref = 3;
 		break;
 	case EXT_EC_REF_QUAT_MI2S_TX:
 		ext_ec_ref_port_id = AFE_PORT_ID_QUATERNARY_MI2S_TX;
+		msm_route_ext_ec_ref = 4;
 		break;
 	case EXT_EC_REF_QUIN_MI2S_TX:
 		ext_ec_ref_port_id = AFE_PORT_ID_QUINARY_MI2S_TX;
 		break;
 	case EXT_EC_REF_SLIM_1_TX:
 		ext_ec_ref_port_id = SLIMBUS_1_TX;
+		msm_route_ext_ec_ref = 5;
 		break;
 	case EXT_EC_REF_NONE:
 	default:
 		ext_ec_ref_port_id = AFE_PORT_INVALID;
+		msm_route_ext_ec_ref = 0;
 		state = false;
 		break;
 	}
@@ -13379,23 +13385,23 @@ static const char * const int4_mi2s_rx_vi_fb_tx_stereo_mux_text[] = {
 	"ZERO", "INT5_MI2S_TX"
 };
 
-static const int const slim0_rx_vi_fb_tx_lch_value[] = {
+static const int slim0_rx_vi_fb_tx_lch_value[] = {
 	MSM_BACKEND_DAI_MAX, MSM_BACKEND_DAI_SLIMBUS_4_TX
 };
 
-static const int const slim0_rx_vi_fb_tx_rch_value[] = {
+static const int slim0_rx_vi_fb_tx_rch_value[] = {
 	MSM_BACKEND_DAI_MAX, MSM_BACKEND_DAI_SLIMBUS_4_TX
 };
 
-static const int const mi2s_rx_vi_fb_tx_value[] = {
+static const int mi2s_rx_vi_fb_tx_value[] = {
 	MSM_BACKEND_DAI_MAX, MSM_BACKEND_DAI_SENARY_MI2S_TX
 };
 
-static const int const int4_mi2s_rx_vi_fb_tx_mono_ch_value[] = {
+static const int int4_mi2s_rx_vi_fb_tx_mono_ch_value[] = {
 	MSM_BACKEND_DAI_MAX, MSM_BACKEND_DAI_INT5_MI2S_TX
 };
 
-static const int const int4_mi2s_rx_vi_fb_tx_stereo_ch_value[] = {
+static const int int4_mi2s_rx_vi_fb_tx_stereo_ch_value[] = {
 	MSM_BACKEND_DAI_MAX, MSM_BACKEND_DAI_INT5_MI2S_TX
 };
 

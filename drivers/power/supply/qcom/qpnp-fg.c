@@ -239,18 +239,25 @@ enum fg_mem_data_index {
 
 static struct fg_mem_setting settings[FG_MEM_SETTING_MAX] = {
 	/*       ID                    Address, Offset, Value*/
-	SETTING(SOFT_COLD,       0x454,   0,      100),
-	SETTING(SOFT_HOT,        0x454,   1,      400),
-	SETTING(HARD_COLD,       0x454,   2,      50),
-	SETTING(HARD_HOT,        0x454,   3,      450),
+#ifdef CONFIG_MACH_ZUK_Z2_PLUS
+	SETTING(SOFT_COLD,       0x454,   0,      170),
+	SETTING(SOFT_HOT,        0x454,   1,      470),
+	SETTING(HARD_COLD,       0x454,   2,      20),
+	SETTING(HARD_HOT,        0x454,   3,      520),
+#else
+	SETTING(SOFT_COLD,       0x454,   0,      160),
+	SETTING(SOFT_HOT,        0x454,   1,      460),
+	SETTING(HARD_COLD,       0x454,   2,      10),
+	SETTING(HARD_HOT,        0x454,   3,      510),
+#endif
 	SETTING(RESUME_SOC,      0x45C,   1,      0),
 	SETTING(BCL_LM_THRESHOLD, 0x47C,   2,      50),
 	SETTING(BCL_MH_THRESHOLD, 0x47C,   3,      752),
 	SETTING(TERM_CURRENT,	 0x40C,   2,      250),
 	SETTING(CHG_TERM_CURRENT, 0x4F8,   2,      250),
-	SETTING(IRQ_VOLT_EMPTY,	 0x458,   3,      3100),
-	SETTING(CUTOFF_VOLTAGE,	 0x40C,   0,      3200),
-	SETTING(VBAT_EST_DIFF,	 0x000,   0,      30),
+	SETTING(IRQ_VOLT_EMPTY,	 0x458,   3,      3000),
+	SETTING(CUTOFF_VOLTAGE,	 0x40C,   0,      3400),
+	SETTING(VBAT_EST_DIFF,	 0x000,   0,      200),
 	SETTING(DELTA_SOC,	 0x450,   3,      1),
 	SETTING(BATT_LOW,	 0x458,   0,      4200),
 	SETTING(THERM_DELAY,	 0x4AC,   3,      0),
@@ -2020,12 +2027,6 @@ static void fg_handle_battery_insertion(struct fg_chip *chip)
 	schedule_delayed_work(&chip->update_sram_data, msecs_to_jiffies(0));
 }
 
-
-static int soc_to_setpoint(int soc)
-{
-	return DIV_ROUND_CLOSEST(soc * 255, 100);
-}
-
 static void batt_to_setpoint_adc(int vbatt_mv, u8 *data)
 {
 	int val;
@@ -2233,17 +2234,24 @@ static int get_monotonic_soc_raw(struct fg_chip *chip)
 }
 
 #define EMPTY_CAPACITY		0
-#define DEFAULT_CAPACITY	50
+#define DEFAULT_CAPACITY	65
 #define MISSING_CAPACITY	100
 #define FULL_CAPACITY		100
+#if defined(CONFIG_MACH_ZUK_Z2_PLUS) || defined(CONFIG_MACH_ZUK_Z2_ROW)
+/*
+* ZUK batteries go only to 252.
+*/
+#define FULL_SOC_RAW		0xFC
+#else
 #define FULL_SOC_RAW		0xFF
+#endif
 static int get_prop_capacity(struct fg_chip *chip)
 {
 	int msoc, rc;
 	bool vbatt_low_sts;
 
 	if (chip->use_last_soc && chip->last_soc) {
-		if (chip->last_soc == FULL_SOC_RAW)
+		if (chip->last_soc >= FULL_SOC_RAW)
 			return FULL_CAPACITY;
 		return DIV_ROUND_CLOSEST((chip->last_soc - 1) *
 				(FULL_CAPACITY - 2),
@@ -2281,7 +2289,7 @@ static int get_prop_capacity(struct fg_chip *chip)
 		} else {
 			return EMPTY_CAPACITY;
 		}
-	} else if (msoc == FULL_SOC_RAW) {
+	} else if (msoc >= FULL_SOC_RAW) {
 		return FULL_CAPACITY;
 	}
 
@@ -7848,6 +7856,7 @@ static struct dentry *fg_dfs_create_fs(void)
 
 	pr_debug("Creating FG_MEM debugfs file-system\n");
 	root = debugfs_create_dir(DFS_ROOT_NAME, NULL);
+#ifdef CONFIG_DEBUG_FS
 	if (IS_ERR_OR_NULL(root)) {
 		pr_err("Error creating top level directory err:%ld",
 			(long)root);
@@ -7855,6 +7864,7 @@ static struct dentry *fg_dfs_create_fs(void)
 			pr_err("debugfs is not enabled in the kernel");
 		return NULL;
 	}
+#endif
 
 	dbgfs_data.help_msg.size = strlen(dbgfs_data.help_msg.data);
 
@@ -8028,7 +8038,7 @@ static int fg_common_hw_init(struct fg_chip *chip)
 	}
 
 	rc = fg_mem_masked_write(chip, settings[FG_MEM_DELTA_SOC].address, 0xFF,
-			soc_to_setpoint(settings[FG_MEM_DELTA_SOC].value),
+			settings[FG_MEM_DELTA_SOC].value,
 			settings[FG_MEM_DELTA_SOC].offset);
 	if (rc) {
 		pr_err("failed to write delta soc rc=%d\n", rc);

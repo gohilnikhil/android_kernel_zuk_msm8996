@@ -728,7 +728,7 @@ static int cpu_power_select(struct cpuidle_device *dev,
 
 		lvl_latency_us = pwr_params->latency_us;
 
-		if (latency_us < lvl_latency_us)
+		if (latency_us <= lvl_latency_us)
 			break;
 
 		if (next_event_us) {
@@ -1074,7 +1074,7 @@ static int cluster_select(struct lpm_cluster *cluster, bool from_idle,
 					&level->num_cpu_votes))
 			continue;
 
-		if (from_idle && latency_us < pwr_params->latency_us)
+		if (from_idle && latency_us <= pwr_params->latency_us)
 			break;
 
 		if (sleep_us < pwr_params->time_overhead_us)
@@ -1185,8 +1185,6 @@ static int cluster_configure(struct lpm_cluster *cluster, int idx,
 
 	/* Notify cluster enter event after successfully config completion */
 	cluster_notify(cluster, level, true);
-
-	sched_set_cluster_dstate(&cluster->child_cpus, idx, 0, 0);
 
 	cluster->last_level = idx;
 
@@ -1354,8 +1352,6 @@ static void cluster_unprepare(struct lpm_cluster *cluster,
 		BUG_ON(ret);
 
 	}
-	sched_set_cluster_dstate(&cluster->child_cpus, 0, 0, 0);
-
 	cluster_notify(cluster, &cluster->levels[last_level], false);
 
 	if (from_idle)
@@ -1592,10 +1588,6 @@ static int lpm_cpuidle_enter(struct cpuidle_device *dev,
 		return -EINVAL;
 
 	pwr_params = &cluster->cpu->levels[idx].pwr;
-	sched_set_cpu_cstate(smp_processor_id(), idx + 1,
-		pwr_params->energy_overhead, pwr_params->latency_us);
-
-	pwr_params = &cluster->cpu->levels[idx].pwr;
 
 	cpu_prepare(cluster, idx, true);
 	cluster_prepare(cluster, cpumask, idx, true, ktime_to_ns(ktime_get()));
@@ -1615,7 +1607,6 @@ exit:
 
 	cluster_unprepare(cluster, cpumask, idx, true, end_time);
 	cpu_unprepare(cluster, idx, true);
-	sched_set_cpu_cstate(smp_processor_id(), 0, 0, 0);
 	end_time = ktime_to_ns(ktime_get()) - start_time;
 	do_div(end_time, 1000);
 	dev->last_residency = end_time;
@@ -1911,8 +1902,7 @@ static int lpm_probe(struct platform_device *pdev)
 	}
 
 	size = num_dbg_elements * sizeof(struct lpm_debug);
-	lpm_debug = dma_alloc_coherent(&pdev->dev, size,
-			&lpm_debug_phys, GFP_KERNEL);
+	lpm_debug = NULL;
 	register_cluster_lpm_stats(lpm_root_node, NULL);
 
 	ret = cluster_cpuidle_register(lpm_root_node);

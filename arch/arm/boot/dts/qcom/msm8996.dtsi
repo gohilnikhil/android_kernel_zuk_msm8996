@@ -21,10 +21,6 @@
 	qcom,pmic-id = <0x20009 0x2000A 0x0 0x0>;
 	interrupt-parent = <&intc>;
 
-	chosen {
-		bootargs = "fpsimd.fpsimd_settings=1 app_setting.use_app_setting=1 app_setting.use_32bit_app_setting=1 kpti=1";
-	};
-
 	aliases {
 		sdhc1 = &sdhc_1; /* SDC1 eMMC slot */
 		sdhc2 = &sdhc_2; /* SDC2 SD card slot */
@@ -46,7 +42,7 @@
 
 	chosen {
 		stdout-path = "serial0";
-		bootargs = "sched_enable_hmp=1 sched_enable_power_aware=1 rcupdate.rcu_expedited=1";
+		bootargs = "fpsimd.fpsimd_settings=1 app_setting.use_app_setting=1 app_setting.use_32bit_app_setting=1 rcupdate.rcu_expedited=1 kpti=1";
 	};
 
 	psci {
@@ -64,7 +60,9 @@
 			reg = <0x0 0x0>;
 			qcom,limits-info = <&mitigation_profile0>;
 			enable-method = "psci";
+			efficiency = <1024>;
 			qcom,ea = <&ea0>;
+			sched-energy-costs = <&CPU_COST_0 &CLUSTER_COST_0>; 
 			next-level-cache = <&L2_0>;
 			L2_0: l2-cache {
 			      compatible = "cache";
@@ -86,7 +84,9 @@
 			reg = <0x0 0x1>;
 			qcom,limits-info = <&mitigation_profile1>;
 			enable-method = "psci";
+			efficiency = <1024>;
 			qcom,ea = <&ea1>;
+			sched-energy-costs = <&CPU_COST_0 &CLUSTER_COST_0>; 
 			next-level-cache = <&L2_0>;
 			L1_D_1: l1-dcache {
 				compatible = "cache";
@@ -103,7 +103,9 @@
 			reg = <0x0 0x100>;
 			qcom,limits-info = <&mitigation_profile2>;
 			enable-method = "psci";
+			efficiency = <1536>;
 			qcom,ea = <&ea2>;
+			sched-energy-costs = <&CPU_COST_1 &CLUSTER_COST_1>; 
 			next-level-cache = <&L2_1>;
 			L2_1: l2-cache {
 			      compatible = "cache";
@@ -125,7 +127,9 @@
 			reg = <0x0 0x101>;
 			enable-method = "psci";
 			qcom,limits-info = <&mitigation_profile3>;
+			efficiency = <1536>;
 			qcom,ea = <&ea3>;
+			sched-energy-costs = <&CPU_COST_1 &CLUSTER_COST_1>; 
 			next-level-cache = <&L2_1>;
 			L1_D_101: l1-dcache {
 				compatible = "cache";
@@ -157,7 +161,119 @@
 				};
 			};
 		};
-	};
+		energy-costs {
+			CPU_COST_0: core-cost0 {
+				busy-cost-data = <
+					149 90
+					207 122
+					233 140
+					263 166
+					298 196
+					342 231
+					406 306
+					459 367
+					494 423
+					529 480
+					570 536
+					589 566
+					630 642
+					666 711
+					707 800
+					763 925
+				>;
+				idle-cost-data = <
+			  		6 6 0 0
+				>;
+			};
+			CPU_COST_1: core-cost1 {
+				busy-cost-data = <
+					149  93
+					197  117
+					233  140
+					263  166
+					298  196
+					342  231
+					368  281
+					415  322
+					449  356
+					494  423
+					529  480
+					570  536
+					596  582
+					630  642
+					666  711
+					707  800
+					746  887
+					779  972
+					814  1046
+					850  1141
+					868  1209
+					917  1331
+					959  1451
+					988  1560
+					1024 1715
+				>;
+				idle-cost-data = <
+					10 10 0 0
+				>;
+			};
+			CLUSTER_COST_0: cluster-cost0 {
+				busy-cost-data = <
+					149 4
+					207 4
+					233 4
+					263 4
+					298 4
+					342 6
+					406 9
+					459 16
+					494 20
+					529 22
+					570 27
+					589 30
+					630 37
+					666 46
+					707 50
+					763 52
+				>;
+				idle-cost-data = <
+					42 42 42 0
+				>;
+			};
+			CLUSTER_COST_1: cluster-cost1 {
+				busy-cost-data = <
+					149  4
+					197  4
+					233  4
+					263  4
+					298  4
+					342  6
+					368  9
+					415  14
+					449  16
+					494  20
+					529  22
+					570  27
+					596  31
+					630  37
+					666  46
+					707  50
+					746  51
+					779  57
+					814  66
+					850  72
+					868  75
+					917  83
+					959  91
+					988  94
+					1024 96
+				>;
+				idle-cost-data = <
+					50 50 50 0
+				>;
+			};
+		};
+	}; 
 
        clocks {
                xo_board {
@@ -265,6 +381,16 @@
 			reg = <0 0xb1c00000 0 0x23ff000>;
 			label = "cont_splash_mem_hdmi";
 		};
+		
+		/* global autoconfigured region for contiguous allocations */
+		linux,cma {
+			compatible = "shared-dma-pool";
+			alloc-ranges = <0 0x00000000 0 0xffffffff>;
+			reusable;
+			alignment = <0 0x400000>;
+			size = <0 0x2000000>;
+			linux,cma-default;
+		};
 	};
 };
 
@@ -297,6 +423,7 @@
                 interrupts = <GIC_SPI 326 IRQ_TYPE_NONE>;
                 qcom,ee = <0>;
                 qcom,channel = <0>;
+                qcom,reserved-chan = <511>;
                 #address-cells = <2>;
                 #size-cells = <0>;
                 interrupt-controller;
@@ -1748,6 +1875,7 @@
 		qcom,boot-option = <0x1>;
 
 		qcom,ep-latency = <10>;
+		qcom,wr-halt-size = <0xa>;
 
 		linux,pci-domain = <2>;
 
@@ -2734,7 +2862,7 @@
 		qcom,msm-bus,num-paths = <1>;
 		qcom,msm-bus,vectors-KBps =
 				<55 512 0 0>,
-				<55 512 3936000 393600>;
+				<55 512 393600 393600>;
 		clock-names = "core_clk_src", "core_clk",
 				"iface_clk", "bus_clk";
 		clocks = <&clock_gcc clk_qcrypto_ce1_clk>,
@@ -2766,7 +2894,7 @@
 		qcom,msm-bus,num-paths = <1>;
 		qcom,msm-bus,vectors-KBps =
 				<55 512 0 0>,
-				<55 512 3936000 393600>;
+				<55 512 393600 393600>;
 		clock-names = "core_clk_src", "core_clk",
 				"iface_clk", "bus_clk";
 		clocks = <&clock_gcc clk_qcedev_ce1_clk>,

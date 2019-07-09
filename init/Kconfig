@@ -1217,33 +1217,6 @@ config CGROUP_WRITEBACK
 
 endif # CGROUPS
 
-config SCHED_HMP
-	bool "Scheduler support for heterogenous multi-processor systems"
-	depends on SMP && FAIR_GROUP_SCHED
-	help
-	  This feature will let the scheduler optimize task placement on
-	  systems made of heterogeneous cpus i.e cpus that differ either
-	  in their instructions per-cycle capability or the maximum
-	  frequency they can attain.
-
-config SCHED_HMP_CSTATE_AWARE
-	bool "CPU C-state aware scheduler"
-	depends on SCHED_HMP
-	help
-	  This feature will let the HMP scheduler optimize task placement
-	  with CPUs C-state. If this is enabled, scheduler places tasks
-	  onto the shallowest C-state CPU among the most power efficient CPUs.
-
-config SCHED_CORE_CTL
-	bool "QTI Core Control"
-	depends on SMP
-	help
-	  This options enables the core control functionality in
-	  the scheduler. Core control automatically offline and
-	  online cores based on cpu load and utilization.
-
-	  If unsure, say N here.
-
 config CHECKPOINT_RESTORE
 	bool "Checkpoint/restore support" if EXPERT
 	select PROC_CHILDREN
@@ -1457,6 +1430,32 @@ config CC_OPTIMIZE_FOR_SIZE
 
 endchoice
 
+config HAVE_LD_DEAD_CODE_DATA_ELIMINATION
+	bool
+	help
+	  This requires that the arch annotates or otherwise protects
+	  its external entry points from being discarded. Linker scripts
+	  must also merge .text.*, .data.*, and .bss.* correctly into
+	  output sections. Care must be taken not to pull in unrelated
+	  sections (e.g., '.text.init'). Typically '.' in section names
+	  is used to distinguish them from label names / C identifiers.
+
+config LD_DEAD_CODE_DATA_ELIMINATION
+	bool "Dead code and data elimination (EXPERIMENTAL)"
+	depends on HAVE_LD_DEAD_CODE_DATA_ELIMINATION
+	depends on EXPERT
+	help
+	  Enable this if you want to do dead code and data elimination with
+	  the linker by compiling with -ffunction-sections -fdata-sections,
+	  and linking with --gc-sections.
+
+	  This can reduce on disk and in-memory size of the kernel
+	  code and static data, particularly for small configs and
+	  on small systems. This has the possibility of introducing
+	  silently broken kernel if the required annotations are not
+	  present. This option is not well tested yet, so use at your
+	  own risk.
+
 config SYSCTL
 	bool
 
@@ -1495,8 +1494,6 @@ config BPF
 
 menuconfig EXPERT
 	bool "Configure standard kernel features (expert users)"
-	# Unhide debug options, to make the on-by-default options visible
-	select DEBUG_KERNEL
 	help
 	  This option allows certain base kernel options and settings
           to be disabled or tweaked. This is for specialized

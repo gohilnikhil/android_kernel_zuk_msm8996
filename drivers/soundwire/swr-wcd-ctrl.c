@@ -1289,7 +1289,11 @@ static int swrm_get_logical_dev_num(struct swr_master *mstr, u64 dev_id,
 {
 	int i;
 	u64 id = 0;
+#ifndef CONFIG_MACH_ZUK_Z2_PLUS
 	int ret = -EINVAL;
+#else
+	int ret = 0;
+#endif
 	struct swr_mstr_ctrl *swrm = swr_get_ctrl_data(mstr);
 
 	if (!swrm) {
@@ -1315,7 +1319,7 @@ static int swrm_get_logical_dev_num(struct swr_master *mstr, u64 dev_id,
 			goto found;
 		}
 	}
-	dev_err(swrm->dev, "%s: device id 0x%llx does not match with 0x%llx\n",
+	dev_dbg(swrm->dev, "%s: device id 0x%llx does not match with 0x%llx\n",
 		__func__, id, dev_id);
 found:
 	pm_runtime_mark_last_busy(&swrm->pdev->dev);
