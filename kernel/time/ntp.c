@@ -456,7 +456,6 @@ int second_overflow(unsigned long secs)
 
 	/* Compute the phase adjustment for the next second */
 	tick_length	 = tick_length_base;
-.
 	delta		 = ntp_offset_chunk(time_offset);
 	time_offset	-= delta;
 	tick_length	+= delta;
