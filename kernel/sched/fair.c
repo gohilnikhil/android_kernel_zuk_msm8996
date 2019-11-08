@@ -2233,22 +2233,12 @@ no_join:
 	return;
 }
 
-/*
- * Get rid of NUMA staticstics associated with a task (either current or dead).
- * If @final is set, the task is dead and has reached refcount zero, so we can
- * safely free all relevant data structures. Otherwise, there might be
- * concurrent reads from places like load balancing and procfs, and we should
- * reset the data back to default state without freeing ->numa_faults.
- */
-void task_numa_free(struct task_struct *p, bool final)
+void task_numa_free(struct task_struct *p)
 {
 	struct numa_group *grp = p->numa_group;
-	unsigned long *numa_faults = p->numa_faults;
+	void *numa_faults = p->numa_faults;
 	unsigned long flags;
 	int i;
-
-	if (!numa_faults)
-		return;
 
 	if (grp) {
 		spin_lock_irqsave(&grp->lock, flags);
@@ -2262,14 +2252,8 @@ void task_numa_free(struct task_struct *p, bool final)
 		put_numa_group(grp);
 	}
 
-	if (final) {
-		p->numa_faults = NULL;
-		kfree(numa_faults);
-	} else {
-		p->total_numa_faults = 0;
-		for (i = 0; i < NR_NUMA_HINT_FAULT_STATS * nr_node_ids; i++)
-			numa_faults[i] = 0;
-	}
+	p->numa_faults = NULL;
+	kfree(numa_faults);
 }
 
 /*
@@ -10729,10 +10713,9 @@ no_move:
 out_balanced:
 	/*
 	 * We reach balance although we may have faced some affinity
-	 * constraints. Clear the imbalance flag only if other tasks got
-	 * a chance to move and fix the imbalance.
+	 * constraints. Clear the imbalance flag if it was set.
 	 */
-	if (sd_parent && !(env.flags & LBF_ALL_PINNED)) {
+	if (sd_parent) {
 		int *group_imbalance = &sd_parent->groups->sgc->imbalance;
 
 		if (*group_imbalance)

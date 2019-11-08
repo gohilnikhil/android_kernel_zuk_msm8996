@@ -415,13 +415,8 @@ static int ovl_create_or_link(struct dentry *dentry, int mode, dev_t rdev,
 		err = -ENOMEM;
 		override_cred = prepare_creds();
 		if (override_cred) {
-			const struct cred *our_cred;
-
-			our_cred = old_cred;
-			if (!our_cred)
-				our_cred = current_cred();
-			override_cred->fsuid = our_cred->fsuid;
-			override_cred->fsgid = our_cred->fsgid;
+			override_cred->fsuid = old_cred->fsuid;
+			override_cred->fsgid = old_cred->fsgid;
 			put_cred(override_creds(override_cred));
 			put_cred(override_cred);
 

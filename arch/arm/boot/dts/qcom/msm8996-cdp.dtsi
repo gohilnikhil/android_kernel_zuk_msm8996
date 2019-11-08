@@ -790,10 +790,6 @@
 	qcom,check-for-float;
 };
 
-&qusb_phy0 {
-	qcom,enable-dpdm-pulsing;
-};
-
 &usb2s {
 	status = "disabled";
 	dwc3@7600000 {
