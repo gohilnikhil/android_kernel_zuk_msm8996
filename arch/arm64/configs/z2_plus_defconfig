@@ -1,4 +1,4 @@
-CONFIG_LOCALVERSION="-POPtheCorns-QuinceTart-hmp"
+CONFIG_LOCALVERSION="-POPtheCorns-v2-hmp"
 # CONFIG_LOCALVERSION_AUTO is not set
 # CONFIG_USELIB is not set
 CONFIG_AUDIT=y
