@@ -9,7 +9,7 @@
 #include <linux/fb.h>
 #include <linux/input.h>
 #include <linux/moduleparam.h>
-#include <linux/cpu_input_boost.h>
+#include <linux/cpu_boost.h>
 
 struct boost_dev {
 	struct workqueue_struct *wq;
