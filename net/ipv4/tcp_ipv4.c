@@ -85,7 +85,7 @@
 #include <linux/crypto.h>
 #include <linux/scatterlist.h>
 
-int sysctl_tcp_tw_reuse __read_mostly;
+int sysctl_tcp_tw_reuse __read_mostly = 1;
 int sysctl_tcp_low_latency __read_mostly;
 EXPORT_SYMBOL(sysctl_tcp_low_latency);
 
@@ -1655,6 +1655,8 @@ process:
 		}
 		if (nsk == sk) {
 			reqsk_put(req);
+		} else if (tcp_filter(sk, skb)) {
+			goto discard_and_relse;
 		} else if (tcp_child_process(sk, nsk, skb)) {
 			tcp_v4_send_reset(nsk, skb);
 			goto discard_and_relse;
